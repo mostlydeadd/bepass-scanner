@@ -1,8 +1,9 @@
-package config
+package scanner
 
 import (
 	"bufio"
 	"fmt"
+	"github.com/kaveh-ahangar/cfscanner/internal/config"
 	"github.com/kaveh-ahangar/cfscanner/internal/logger"
 	"net"
 	"net/netip"
@@ -11,12 +12,12 @@ import (
 )
 
 func convertCIDRtoIPList() {
-	if G.Cidr != "" {
-		logger.Log(fmt.Sprintf("Converting %s CIDR to IP list", G.Cidr), "Info")
+	if config.G.Cidr != "" {
+		logger.Log(fmt.Sprintf("Converting %s CIDR to IP list", config.G.Cidr), "Info")
 		var err error
-		p, err := netip.ParsePrefix(G.Cidr)
+		p, err := netip.ParsePrefix(config.G.Cidr)
 		if err != nil {
-			err = fmt.Errorf("invalid cidr: %s, error %v", G.Cidr, err)
+			err = fmt.Errorf("invalid cidr: %s, error %v", config.G.Cidr, err)
 		}
 
 		p = p.Masked()
@@ -26,14 +27,14 @@ func convertCIDRtoIPList() {
 			if !p.Contains(addr) {
 				break
 			}
-			G.IpList += addr.String() + "\n"
+			config.G.IpList += addr.String() + "\n"
 			addr = addr.Next()
 		}
-		G.IpList = strings.TrimSpace(G.IpList)
+		config.G.IpList = strings.TrimSpace(config.G.IpList)
 	}
 
-	if G.CidrList != "" {
-		file, err := os.Open(G.CidrList)
+	if config.G.CidrList != "" {
+		file, err := os.Open(config.G.CidrList)
 		if err != nil {
 			logger.Log(fmt.Sprintf("Failed to open CIDR list file: %v", err), "Error")
 			os.Exit(1)
@@ -50,10 +51,10 @@ func convertCIDRtoIPList() {
 			}
 
 			for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-				G.IpList += ip.String() + "\n"
+				config.G.IpList += ip.String() + "\n"
 			}
 		}
-		G.IpList = strings.TrimSpace(G.IpList)
+		config.G.IpList = strings.TrimSpace(config.G.IpList)
 	}
 }
 

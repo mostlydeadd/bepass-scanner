@@ -2,13 +2,9 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"github.com/kaveh-ahangar/cfscanner/internal/logger"
 	"github.com/spf13/pflag"
-	"math/rand"
 	"os"
-	"path/filepath"
-	"strconv"
 	"time"
 )
 
@@ -31,10 +27,8 @@ type Config struct {
 	Help            bool
 	PingTimeout     time.Duration
 	PortscanTimeout time.Duration
-	FullMode        bool
 	PingMode        bool
 	PortscanMode    bool
-	TempDir         string
 }
 
 func init() {
@@ -48,14 +42,7 @@ func init() {
 
 func InitFromFlags() {
 	parseFlags()
-	next()
-}
-
-func next() {
 	validateInput()
-
-	setupTempDir()
-	convertCIDRtoIPList()
 }
 
 func parseFlags() {
@@ -66,10 +53,9 @@ func parseFlags() {
 	pflag.StringVarP(&G.Cidr, "cidr", "c", "", "list of CIDR")
 	pflag.StringVarP(&G.CidrList, "cidr-list", "C", "", "list of CIDR")
 	pflag.StringVarP(&G.OutputFile, "output", "o", "", "output file")
-	pflag.StringVarP(&G.Ports, "ports", "p", defaultPorts, "Comma-separated list of ports. default: 80,443,22")
+	pflag.StringVarP(&G.Ports, "ports", "p", defaultPorts, "Comma-separated list of ports. default: 443,8443,2096")
 	pflag.DurationVar(&G.PingTimeout, "ping-timeout", 400*time.Millisecond, "Ping timeout in milliseconds")
 	pflag.DurationVar(&G.PortscanTimeout, "portscan-timeout", 400*time.Millisecond, "Port-scan timeout in milliseconds")
-	pflag.BoolVarP(&G.FullMode, "full", "", false, "Runs full mode")
 	pflag.BoolVarP(&G.PingMode, "ping", "", true, "Runs only ping mode")
 	pflag.BoolVarP(&G.PortscanMode, "portscan", "", false, "Runs only portscan mode")
 	pflag.IntVarP(&G.Threads, "threads", "t", 5, "number of threads")
@@ -87,8 +73,6 @@ func parseFlags() {
 			logger.Silent()
 		case "help":
 			G.Help = true
-		case "full":
-			G.FullMode = true
 		case "ping":
 			G.PingMode = true
 		case "portscan":
@@ -133,19 +117,6 @@ func validateInput() {
 
 	if G.PortscanTimeout < G.PingTimeout {
 		logger.Log("Portscan timeout cannot be less than ping timeout.", "Error")
-		os.Exit(1)
-	}
-
-	if G.Help {
-		printHelp()
-		os.Exit(0)
-	}
-}
-
-func setupTempDir() {
-	G.TempDir = filepath.Join(os.TempDir(), "goscan-"+strconv.Itoa(rand.Int()))
-	if err := os.MkdirAll(G.TempDir, os.ModePerm); err != nil {
-		logger.Log(fmt.Sprintf("Failed to create temporary directory: %v", err), "Error")
 		os.Exit(1)
 	}
 }

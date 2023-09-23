@@ -16,6 +16,9 @@ func NewScanner() *Scanner {
 
 func (s *Scanner) Run() {
 	// Use channels to collect results from goroutines.
+
+	convertCIDRtoIPList()
+
 	var wg sync.WaitGroup
 	activeIPChan := make(chan string, config.G.Threads*2)
 	defer close(activeIPChan)
@@ -32,11 +35,11 @@ func (s *Scanner) Run() {
 		}()
 	}
 
-	if config.G.PingMode || config.G.FullMode {
+	if config.G.PingMode {
 		pingTechnique(activeIPChan)
 	}
 
-	if config.G.PortscanMode || config.G.FullMode {
+	if config.G.PortscanMode {
 		portScanTechnique(activeIPChan)
 	}
 
