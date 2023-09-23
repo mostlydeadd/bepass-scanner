@@ -10,7 +10,7 @@ clean:
 	rm -rf $(DIRS)
 build: create_dirs
 	@echo "Building CLI Version..."
-	go build  -trimpath -o $(BUILD_DIR)/cfscanner cmd/cfscanner/main.go
+	go build  -trimpath -o $(BUILD_DIR)/cfscanner cmd/cli/main.go
 
 release: create_dirs
 	@echo "Building CLI Release Version..."
